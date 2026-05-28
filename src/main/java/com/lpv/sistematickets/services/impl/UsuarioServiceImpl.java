@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.lpv.sistematickets.dto.request.UsuarioRequestDTO;
+import com.lpv.sistematickets.dto.request.UsuarioUpdateDTO;
+import com.lpv.sistematickets.dto.response.UsuarioResponseDTO;
 import com.lpv.sistematickets.entities.Usuario;
 import com.lpv.sistematickets.repositories.UsuarioRepository;
 import com.lpv.sistematickets.services.UsuarioService;
@@ -18,44 +21,73 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<Usuario> getAll() {
-        return usuarioRepository.findAll();
+    public List<UsuarioResponseDTO> getAll() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     @Override
-    public Usuario getById(Long id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id " + id));
+    public UsuarioResponseDTO getById(Long id) {
+        Usuario usuario = searchById(id);
+        return toResponseDTO(usuario);
     }
 
     @Override
-    public Usuario getByMail(String mail) {
-        return usuarioRepository.findByMail(mail)
+    public UsuarioResponseDTO getByMail(String mail) {
+        Usuario usuario = usuarioRepository.findByMail(mail)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con mail " + mail));
+        return toResponseDTO(usuario);
     }
 
     @Override
-    public Usuario save(Usuario usuario) {
-        if (usuarioRepository.findByMail(usuario.getMail()).isPresent()) {
-            throw new RuntimeException("Ya existe un usuario con el mail " + usuario.getMail());
+    public UsuarioResponseDTO save(UsuarioRequestDTO usuarioRequestDTO) {
+        if (usuarioRepository.findByMail(usuarioRequestDTO.getMail()).isPresent()) {
+            throw new RuntimeException("Ya existe un usuario con el mail " + usuarioRequestDTO.getMail());
         }
-        return usuarioRepository.save(usuario);
+
+        Usuario usuario = new Usuario();
+        usuario.setNombres(usuarioRequestDTO.getNombres());
+        usuario.setApellidos(usuarioRequestDTO.getApellidos());
+        usuario.setMail(usuarioRequestDTO.getMail());
+        usuario.setRol(usuarioRequestDTO.getRol());
+
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+        return toResponseDTO(usuarioGuardado);
     }
 
     @Override
-    public Usuario update(Long id, Usuario usuario) {
-        Usuario usuarioExistente = getById(id);
+    public UsuarioResponseDTO update(Long id, UsuarioUpdateDTO usuarioUpdateDTO) {
+        Usuario usuarioExistente = searchById(id);
 
-        usuarioExistente.setNombres(usuario.getNombres());
-        usuarioExistente.setApellidos(usuario.getApellidos());
-        usuarioExistente.setRol(usuario.getRol());
-        return usuarioRepository.save(usuarioExistente);
+        usuarioExistente.setNombres(usuarioUpdateDTO.getNombres());
+        usuarioExistente.setApellidos(usuarioUpdateDTO.getApellidos());
+        usuarioExistente.setRol(usuarioUpdateDTO.getRol());
+
+        Usuario usuarioActualizado = usuarioRepository.save(usuarioExistente);
+        return toResponseDTO(usuarioActualizado);
+
     }
 
     @Override
     public void delete(Long id) {
-        Usuario usuarioExistente = getById(id);
+        Usuario usuarioExistente = searchById(id);
         usuarioRepository.delete(usuarioExistente);
+    }
+
+    private Usuario searchById(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id " + id));
+    }
+
+    private UsuarioResponseDTO toResponseDTO(Usuario usuario) {
+        return new UsuarioResponseDTO(
+                usuario.getId(),
+                usuario.getNombres(),
+                usuario.getApellidos(),
+                usuario.getMail(),
+                usuario.getRol());
     }
 
 }

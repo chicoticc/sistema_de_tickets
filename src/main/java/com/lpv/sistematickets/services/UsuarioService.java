@@ -1,19 +1,22 @@
 package com.lpv.sistematickets.services;
 
 import java.util.List;
-import com.lpv.sistematickets.entities.Usuario;
+
+import com.lpv.sistematickets.dto.request.UsuarioRequestDTO;
+import com.lpv.sistematickets.dto.request.UsuarioUpdateDTO;
+import com.lpv.sistematickets.dto.response.UsuarioResponseDTO;
 
 public interface UsuarioService {
 
-    List<Usuario> getAll();
+    List<UsuarioResponseDTO> getAll();
 
-    Usuario getById(Long id);
+    UsuarioResponseDTO getById(Long id);
 
-    Usuario getByMail(String mail);
+    UsuarioResponseDTO getByMail(String mail);
 
-    Usuario save(Usuario usuario);
+    UsuarioResponseDTO save(UsuarioRequestDTO usuario);
 
-    Usuario update(Long id, Usuario usuario);
+    UsuarioResponseDTO update(Long id, UsuarioUpdateDTO usuario);
 
     void delete(Long id);
 
